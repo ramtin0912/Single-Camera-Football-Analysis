@@ -6,7 +6,7 @@ Where to work, given what the user wants.
 | Task | Start here |
 |---|---|
 | Add / change an analysis metric | `touchline/metrics/` |
-| Pipeline orchestration (frame loop) | `touchline/__main__.py` |
+| Pipeline orchestration (frame loop) | `touchline/pipeline.py` |
 | Detection / model changes | `touchline/detection.py` |
 | Calibration / pitch mapping | `touchline/calibration.py`, `touchline/projection.py` |
 | Tracking | `touchline/tracking.py` |

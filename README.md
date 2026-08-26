@@ -27,8 +27,7 @@ First run downloads the YOLOv8 nano weights automatically.
 ## Run
 ```
 python -m touchline path/to/match.mp4 --out output/match1
-```
-On first run you will click calibration points on a still frame:
+```On first run you will click calibration points on a still frame:
 near-left corner, near-right corner, far-right corner, far-left corner (near =
 the camera side). Press `q` to finish early once 4 points are set; optional
 extra points (centre spot, penalty spots) improve accuracy.
@@ -37,6 +36,13 @@ Useful options:
 - `--frame-step 2` — process every 2nd frame (faster; fine for territory/heatmaps).
 - `--model yolov8n.pt` — use a different YOLO model.
 - `--calibration output/match1/calibration.json` — reuse a saved calibration.
+
+## Test the metric core (no video needed)
+```
+python scripts/smoke_test.py
+```
+Builds synthetic frame records and checks territory, possession, and
+distance/speed. All four checks should print PASS.
 
 ## Output (in the `--out` directory)
 - `report.json` — all metrics as structured data (the stable contract).

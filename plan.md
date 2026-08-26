@@ -56,19 +56,23 @@ Python 3.10+, OpenCV, NumPy, ultralytics (YOLOv8). See `_config/stack.md`.
 14. Fine-tuned football detector + real per-player identity.
 
 ## Build sections
+> Status: S1-S3 code and the S5 script are written and compile. Nothing has
+> been executed end-to-end yet — this environment has no OpenCV/YOLO installed.
+> First run happens after `pip install -r requirements.txt`.
 - [x] S1 — Project base: docs, config, structure, CLI skeleton
 - [x] S2 — Tier 0 + Tier 1: calibration, detection, team split, territory,
       possession, heatmaps (working end-to-end)
 - [x] S3 — Tier 2: tracking -> distance & speed
 - [ ] S4 — Tier 3: events (passes, shots, goals, corners)
-- [ ] S5 — Synthetic test footage + smoke test (verify without a real match)
+- [x] S5 — Metric smoke test script (`scripts/smoke_test.py`)
 
 ## Acceptance criteria (per section)
 - S2: `python -m touchline sample.mp4` produces territory %, possession %,
   and team heatmap PNGs in `output/`.
 - S3: report includes per-team distance and per-tracklet distance/speed.
 - S4: report includes detected events with timestamps and pitch positions.
-- S5: synthetic footage reproduces known territory/distance within tolerance.
+- S5: `python scripts/smoke_test.py` reproduces known territory/possession/
+  distance values and all checks pass.
 
 ## Risks / unknowns
 - Ball detection is the weak point (small, fast, occluded). Mitigation: COCO

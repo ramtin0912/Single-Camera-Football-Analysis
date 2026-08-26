@@ -10,8 +10,8 @@
 
 from pathlib import Path
 
-from . import (calibration, config, detection, projection, team_assignment,
-               video_io)
+from . import (action_spotting, calibration, config, detection, projection,
+               team_assignment, video_io)
 from .metrics import distance_speed, events, heatmaps, possession, territory
 from .records import FrameRecord, PlayerRecord
 
@@ -24,7 +24,12 @@ class AnalysisPipeline:
                  frame_step: int = config.DEFAULT_FRAME_STEP,
                  calibration_path: str | None = None,
                  auto_calibration_repo: str | None = None,
-                 include_events: bool = False):
+                 include_events: bool = False,
+                 action_spotting_repo: str | None = None,
+                 action_spotting_experiment: str = "sampling_weights_001",
+                 action_spotting_device: str = "cuda:0",
+                 action_spotting_fold: int = 0,
+                 action_spotting_prepare: bool = False):
         self.video_path = video_path
         self.out_dir = Path(out_dir)
         self.model_name = model_name
@@ -32,6 +37,11 @@ class AnalysisPipeline:
         self.calibration_path = calibration_path
         self.auto_calibration_repo = auto_calibration_repo
         self.include_events = include_events
+        self.action_spotting_repo = action_spotting_repo
+        self.action_spotting_experiment = action_spotting_experiment
+        self.action_spotting_device = action_spotting_device
+        self.action_spotting_fold = action_spotting_fold
+        self.action_spotting_prepare = action_spotting_prepare
 
     def run(self) -> dict:
         """Run the pipeline and return the metrics dict written to disk."""
@@ -44,11 +54,21 @@ class AnalysisPipeline:
         video.release()
         centroids = team_assignment.compute_team_centroids(colour_features)
         self._assign_teams(frame_records, centroids)
-        metrics = self._compute_metrics(fps, frame_records)
+        raw_events = self._run_action_spotting() if self.include_events else None
+        metrics = self._compute_metrics(fps, frame_records, raw_events)
         heatmap_paths = self._write_heatmaps(frame_records)
         report_paths = self._write_report(metrics, heatmap_paths)
         metrics["report_paths"] = report_paths
         return metrics
+
+    def _run_action_spotting(self):
+        if not self.action_spotting_repo:
+            return []
+        return action_spotting.run_action_spotting(
+            self.video_path, self.action_spotting_repo,
+            self.action_spotting_experiment, self.out_dir,
+            fold=self.action_spotting_fold, device=self.action_spotting_device,
+            prepare=self.action_spotting_prepare)
 
     def _resolve_calibration(self, video):
         if self.calibration_path and Path(self.calibration_path).exists():
@@ -102,9 +122,7 @@ class AnalysisPipeline:
                 player.team_id = team_assignment.assign_team(
                     player.colour_ab, centroids)
 
-    def _compute_metrics(self, fps: float, frame_records) -> dict:
-        detected_events = events.detect_events(frame_records, fps) \
-            if self.include_events else {"events": []}
+    def _compute_metrics(self, fps: float, frame_records, raw_events=None) -> dict:
         return {
             "video": {
                 "path": self.video_path,
@@ -115,7 +133,7 @@ class AnalysisPipeline:
             "territory": territory.compute_territory(frame_records),
             "possession": possession.compute_possession(frame_records),
             "distance": distance_speed.compute_distance_speed(frame_records, fps),
-            "events": detected_events,
+            "events": events.detect_events(frame_records, fps, raw_events),
         }
 
     def _write_heatmaps(self, frame_records) -> dict:

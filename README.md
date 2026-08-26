@@ -43,6 +43,9 @@ Useful options:
 - `--auto-calibrate /path/to/no-bells-just-whistles` — auto pitch calibration
   via the NBJW open-source model (see `_config/integrations.md`); manual click
   is the fallback.
+- `--include-events --action-spotting-repo /path/to/ball-action-spotting` —
+  detect passes/shots/goals via the SoccerNet action-spotting model (needs a
+  GPU and its downloaded weights).
 
 ## Test the metric core (no video needed)
 ```

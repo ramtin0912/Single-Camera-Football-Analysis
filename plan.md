@@ -61,14 +61,15 @@ Python 3.10+, OpenCV, NumPy, ultralytics (YOLOv8). See `_config/stack.md`.
 14. Fine-tuned football detector + real per-player identity.
 
 ## Build sections
-> Status: S1-S3 code and the S5 script are written and compile. Nothing has
-> been executed end-to-end yet — this environment has no OpenCV/YOLO installed.
-> First run happens after `pip install -r requirements.txt`.
+> Status: S1-S3 code, the S4 events adapter, and the S5 script are written and
+> compile. Nothing has been executed end-to-end yet — this environment has no
+> OpenCV/YOLO/GPU. First run happens after `pip install -r requirements.txt`
+> (and a GPU for action spotting).
 - [x] S1 — Project base: docs, config, structure, CLI skeleton
 - [x] S2 — Tier 0 + Tier 1: calibration, detection, team split, territory,
       possession, heatmaps (working end-to-end)
 - [x] S3 — Tier 2: tracking -> distance & speed
-- [ ] S4 — Tier 3: events (passes, shots, goals, corners)
+- [x] S4 — Tier 3: events adapter (action-spotting glue + pitch mapping)
 - [x] S5 — Metric smoke test script (`scripts/smoke_test.py`)
 
 ## Acceptance criteria (per section)

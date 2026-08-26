@@ -24,6 +24,9 @@ def _parse_args(argv):
     parser.add_argument("--frame-step", type=int, default=config.DEFAULT_FRAME_STEP,
                         help="process every Nth frame")
     parser.add_argument("--calibration", help="reuse a saved calibration.json")
+    parser.add_argument("--auto-calibrate", metavar="NBJW_REPO",
+                        help="auto-calibrate using the No Bells, Just Whistles "
+                             "checkout at this path")
     parser.add_argument("--include-events", action="store_true",
                         help="include event detection (not yet implemented)")
     return parser.parse_args(argv)
@@ -38,6 +41,7 @@ def main(argv=None) -> int:
         model_name=args.model,
         frame_step=args.frame_step,
         calibration_path=args.calibration,
+        auto_calibration_repo=args.auto_calibrate,
         include_events=args.include_events,
     )
     runner.run()

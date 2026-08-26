@@ -19,9 +19,13 @@ A Python pipeline of scripts/algorithms: `video in -> report out`. No GUI.
 The desktop app is **Tier 4, delegated** — the pipeline is built as a plain
 package so a desktop app can wrap it later without rewrite.
 
+**Open-source-first:** adopt published tools (SoccerNet action spotting,
+Ultralytics YOLO + ByteTrack, No Bells Just Whistles) rather than building
+models, trackers, or event detectors ourselves. We write the glue.
+
 ## Non-goals
 - No desktop app / mobile app UI (later).
-- No complex models or stats. Heuristics + simple CV only.
+- No building our own complex models or stats — use open-source ones instead.
 - No per-player identity (jersey-number OCR). Team-level only for now.
 - No live/streaming analysis. Post-match only.
 
@@ -32,7 +36,8 @@ Python 3.10+, OpenCV, NumPy, ultralytics (YOLOv8). See `_config/stack.md`.
 
 ### Tier 0 — Foundation (prerequisites, not analytics yet)
 1. Video ingestion — read phone footage, yield frames.
-2. Pitch calibration + homography — manual 4+ point click -> pixels to pitch metres.
+2. Pitch calibration + homography — NBJW auto (open source), manual 4+ click
+   fallback -> pixels to pitch metres.
 3. Player + ball detection — YOLOv8, filter to person + sports-ball.
 4. Team assignment — jersey colour k-means -> team 0 / team 1.
 5. Projection — box feet point -> pitch coordinates.
@@ -43,12 +48,12 @@ Python 3.10+, OpenCV, NumPy, ultralytics (YOLOv8). See `_config/stack.md`.
 8. **Team heatmaps & shape** — where each team's players are.
 
 ### Tier 2 — Medium
-9. Tracking — frame-to-frame association (IoU tracker).
+9. Tracking — ByteTrack via ultralytics (open source).
 10. **Distance & speed** — per team, and per tracklet (proxy for a player).
 
 ### Tier 3 — Hardest
-11. **Events** — passes, shots, goals, corners (heuristics on ball + player
-    trajectories and pitch zones).
+11. **Events** — passes, shots, goals, corners via SoccerNet action spotting
+    (open source; lRomul/ball-action-spotting or sn-spotting).
 
 ### Tier 4 — Delegated (not in this phase)
 12. Desktop app wrapping the pipeline.
@@ -79,7 +84,8 @@ Python 3.10+, OpenCV, NumPy, ultralytics (YOLOv8). See `_config/stack.md`.
   "sports ball" now, fine-tune later; tolerate "unknown" possession.
 - One camera cannot see all four pitch corners in tight shots — calibration
   requires wide-enough framing. Mitigation: document framing guidance.
-- IoU tracker fragments tracklets on overlaps -> inflated team distance.
-  Mitigation: accept for team-level; swap to ByteTrack if needed.
+- Open-source models (NBJW, action spotting) are trained on broadcast footage;
+  a fixed sideline camera is a domain shift. Mitigation: validate on real
+  sideline clips, keep manual-calibration fallback.
 - k=2 colour clustering can absorb the referee. Mitigation: note as known issue,
   filter near-black/referee colours later.

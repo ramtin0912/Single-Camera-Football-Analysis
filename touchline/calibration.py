@@ -1,14 +1,17 @@
 """
 @file calibration.py
-@description Manual pitch calibration: click known landmarks on a still frame,
-  fit the image->pitch homography, and cache it to JSON for later runs.
+@description Pitch calibration: compute the image->pitch homography. The
+  primary path is open-source auto-calibration (No Bells, Just Whistles); a
+  manual 4+ point click remains as a fallback. Homographies cache to JSON.
 
-@status None
-@issues None
-@todo None
+@status Auto-calibration adapter scaffolded; manual path fully working.
+@issues NBJW homography output parsing is not finalised.
+@todo
+  - [ ] Finalise NBJW homography extraction (see auto_calibrate).
 """
 
 import json
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -86,6 +89,32 @@ def compute_homography(clicks: dict) -> np.ndarray:
     if homography is None:
         raise RuntimeError("Could not fit a homography from the clicked points.")
     return homography
+
+
+def auto_calibrate(frame, nbjw_repo_path: str) -> np.ndarray:
+    """Calibrate automatically using No Bells, Just Whistles (NBJW).
+
+    NBJW (https://github.com/mguti97/no-bells-just-whistles) estimates the
+    pitch homography from a single frame using field keypoints + lines, then
+    DLT. It ships single-view weights (SV_kp, SV_lines).
+
+    This is a scaffold: it validates the NBJW checkout and points at the exact
+    integration step that remains (extracting the homography it produces). See
+    `_config/integrations.md` for setup.
+    """
+    repo = Path(nbjw_repo_path)
+    if not (repo / "inference.py").exists():
+        raise FileNotFoundError(
+            f"NBJW not found at {nbjw_repo_path}. Clone it and download the "
+            "SV_kp / SV_lines weights — see _config/integrations.md.")
+    # Integration point: run NBJW inference.py on `frame` (its documented CLI:
+    # python inference.py --weights_kp SV_kp --weights_line SV_lines
+    #   --input_path <frame> --input_type image --save_path <out>),
+    # then convert its estimated homography into our image->pitch matrix.
+    raise NotImplementedError(
+        "NBJW auto-calibration is scaffolded but its homography output is not "
+        "yet parsed. Use manual calibration for now, or finalise "
+        "touchline/calibration.py:auto_calibrate.")
 
 
 def save_calibration(path: str, homography: np.ndarray) -> None:

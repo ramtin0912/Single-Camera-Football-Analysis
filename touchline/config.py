@@ -30,9 +30,5 @@ TEAM_CROP_FRACTION = 0.5         # lower half of a box = torso, below the head
 # Possession
 POSSESSION_RADIUS_M = 3.0        # ball->player max distance to count possession
 
-# Tracking
-TRACK_MAX_GAP_FRAMES = 5
-TRACK_MIN_IOU = 0.2
-
 # Heatmaps
 HEATMAP_CELL_M = 2.0             # grid cell size in metres

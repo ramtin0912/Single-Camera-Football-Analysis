@@ -9,6 +9,10 @@ touchline. Post-match: record, run the pipeline, read the report.
 
 Football means soccer (FIFA rules). Nothing here relates to American football.
 
+Open-source-first: detection and tracking come from Ultralytics YOLOv8 +
+ByteTrack, auto pitch calibration from No Bells Just Whistles, and events from
+SoccerNet action spotting — Touchline writes the glue, not new models.
+
 ## What it does
 - Reads a match video (`.mp4`, `.mov`, etc.).
 - Calibrates the pitch once (click 4+ known points) and caches it.
@@ -36,6 +40,9 @@ Useful options:
 - `--frame-step 2` — process every 2nd frame (faster; fine for territory/heatmaps).
 - `--model yolov8n.pt` — use a different YOLO model.
 - `--calibration output/match1/calibration.json` — reuse a saved calibration.
+- `--auto-calibrate /path/to/no-bells-just-whistles` — auto pitch calibration
+  via the NBJW open-source model (see `_config/integrations.md`); manual click
+  is the fallback.
 
 ## Test the metric core (no video needed)
 ```

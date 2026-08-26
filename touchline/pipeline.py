@@ -11,7 +11,7 @@
 from pathlib import Path
 
 from . import (calibration, config, detection, projection, team_assignment,
-               tracking, video_io)
+               video_io)
 from .metrics import distance_speed, events, heatmaps, possession, territory
 from .records import FrameRecord, PlayerRecord
 
@@ -23,12 +23,14 @@ class AnalysisPipeline:
                  model_name: str = config.DEFAULT_MODEL,
                  frame_step: int = config.DEFAULT_FRAME_STEP,
                  calibration_path: str | None = None,
+                 auto_calibration_repo: str | None = None,
                  include_events: bool = False):
         self.video_path = video_path
         self.out_dir = Path(out_dir)
         self.model_name = model_name
         self.frame_step = frame_step
         self.calibration_path = calibration_path
+        self.auto_calibration_repo = auto_calibration_repo
         self.include_events = include_events
 
     def run(self) -> dict:
@@ -51,6 +53,9 @@ class AnalysisPipeline:
     def _resolve_calibration(self, video):
         if self.calibration_path and Path(self.calibration_path).exists():
             return calibration.load_calibration(self.calibration_path)
+        if self.auto_calibration_repo:
+            frame = video.read_frame(0)
+            return calibration.auto_calibrate(frame, self.auto_calibration_repo)
         frame = video.read_frame(0)
         clicks = calibration.collect_calibration_clicks(frame)
         homography = calibration.compute_homography(clicks)
@@ -62,13 +67,9 @@ class AnalysisPipeline:
     def _process_frames(self, video, detector, homography):
         frame_records = []
         colour_features = []
-        tracker = tracking.TrackletTracker()
         for frame_index, frame in video.frames(step=self.frame_step):
-            players, player_boxes, ball = self._detect_players_and_ball(
+            players, ball = self._detect_players_and_ball(
                 frame, detector, homography, colour_features)
-            track_ids = tracker.update(player_boxes, frame_index)
-            for player, track_id in zip(players, track_ids):
-                player.track_id = track_id
             frame_records.append(FrameRecord(frame_index=frame_index,
                                              ball=ball, players=players))
         return frame_records, colour_features
@@ -76,10 +77,9 @@ class AnalysisPipeline:
     def _detect_players_and_ball(self, frame, detector, homography,
                                  colour_features):
         players = []
-        player_boxes = []
         ball = None
         ball_confidence = -1.0
-        for detection in detector.detect(frame):
+        for detection in detector.track(frame):
             point = projection.project_points(
                 projection.feet_point(detection.box), homography)[0]
             if detection.is_person:
@@ -87,13 +87,14 @@ class AnalysisPipeline:
                     team_assignment.torso_crop(frame, detection.box))
                 if len(colour_features) < config.TEAM_COLOUR_SAMPLE_LIMIT:
                     colour_features.append(feature)
-                players.append(PlayerRecord(x=float(point[0]), y=float(point[1]),
-                                            colour_ab=tuple(feature)))
-                player_boxes.append(detection.box)
+                players.append(PlayerRecord(
+                    x=float(point[0]), y=float(point[1]),
+                    track_id=detection.track_id,
+                    colour_ab=tuple(feature)))
             elif detection.is_ball and detection.confidence > ball_confidence:
                 ball_confidence = detection.confidence
                 ball = (float(point[0]), float(point[1]))
-        return players, player_boxes, ball
+        return players, ball
 
     def _assign_teams(self, frame_records, centroids) -> None:
         for record in frame_records:

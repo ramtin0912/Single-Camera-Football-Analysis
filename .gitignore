@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Runtime output (analysis results, calibration files, heatmaps)
+output/
+*.json.calibration
+
+# Local model weights (large binaries)
+*.pt
+models/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Secrets
+.env

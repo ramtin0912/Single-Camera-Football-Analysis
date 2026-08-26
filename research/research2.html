@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PI Agent — How to Fill the Markdown Context Files</title>
+<style>
+:root{--bg:#0b1020;--panel:#121a2e;--panel2:#17213a;--text:#edf2ff;--muted:#aab6d3;--accent:#7dd3fc;--green:#86efac;--yellow:#fde68a;--border:#293653}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(135deg,#0b1020,#10182d);color:var(--text);font:16px/1.55 Inter,system-ui,sans-serif}
+main{max-width:1050px;margin:auto;padding:48px 24px 70px} h1{font-size:42px;line-height:1.05;margin:0 0 12px} h2{margin-top:42px;font-size:25px} h3{margin-top:26px}
+.lead{color:var(--muted);font-size:18px;max-width:780px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:25px 0}
+.card{background:rgba(18,26,46,.88);border:1px solid var(--border);border-radius:16px;padding:20px}.tag{display:inline-block;padding:4px 9px;border-radius:999px;background:#1d314d;color:var(--accent);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+pre{white-space:pre-wrap;background:#080d19;border:1px solid var(--border);border-radius:12px;padding:18px;color:#dbeafe;overflow:auto}.good{color:var(--green)}.warn{color:var(--yellow)}
+table{width:100%;border-collapse:collapse;background:rgba(18,26,46,.7);border-radius:12px;overflow:hidden}th,td{text-align:left;padding:13px;border-bottom:1px solid var(--border);vertical-align:top}th{color:var(--accent)}
+.small{color:var(--muted);font-size:14px}.rule{border-left:3px solid var(--accent);padding:10px 16px;margin:16px 0;background:#101a30}
+ul{padding-left:22px} code{color:#bae6fd;background:#0a1222;padding:2px 5px;border-radius:5px}
+</style>
+</head>
+<body><main>
+<span class="tag">PI Agent Context Guide</span>
+<h1>How to fill the Markdown files</h1>
+<p class="lead">The goal is not to write lots of documentation. The goal is to give the agent the <strong>smallest useful amount of context</strong> that reliably produces the right change.</p>
+
+<div class="grid">
+<div class="card"><h3>1. Be specific</h3><p>Write rules the agent can act on. Prefer “Run <code>npm test</code> after changing API code” over “Keep quality high.”</p></div>
+<div class="card"><h3>2. Keep layers separate</h3><p>Rules and conventions belong in reference files. Current task state belongs in working artifacts.</p></div>
+<div class="card"><h3>3. Scope aggressively</h3><p>Each stage should name exactly what it needs. Don't make the agent discover the whole repository every time.</p></div>
+<div class="card"><h3>4. Improve the source</h3><p>If you repeatedly fix the same output manually, turn that correction into a rule, example, test, or stage instruction.</p></div>
+</div>
+
+<h2>The mental model</h2>
+<div class="rule"><strong>CLAUDE.md = Where am I?</strong><br>
+<strong>CONTEXT.md = Where do I go?</strong><br>
+<strong>Stage CONTEXT.md = What do I do?</strong><br>
+<strong>references/*.md = What rules apply?</strong><br>
+<strong>output/ = What am I working with?</strong></div>
+<p>This follows the methodology's five-layer hierarchy: structural routing in Layers 0–2, then stable reference material and changing working artifacts in Layers 3–4. fileciteturn1file6L329-L350</p>
+
+<h2>1. Root <code>CLAUDE.md</code></h2>
+<p><strong>Keep this tiny.</strong> Its job is orientation, not project documentation.</p>
+<table><tr><th>Put here</th><th>Don't put here</th></tr>
+<tr><td>Project identity<br>Where important folders live<br>Non-negotiable global rules<br>How to start / validate the project</td>
+<td>Detailed feature requirements<br>Long architecture essays<br>Every coding convention<br>Current task details</td></tr></table>
+<h3>Good content</h3>
+<pre># PI Agent
+
+## Project
+Short description of what this repository is.
+
+## Navigation
+- `src/` — application code
+- `tests/` — tests
+- `docs/` — project documentation
+- `agent/` — agent context and workflow
+
+## Non-negotiables
+- Prefer the smallest change that solves the task.
+- Do not introduce dependencies without a clear need.
+- Run the relevant tests after changes.
+
+## Start here
+Read `CONTEXT.md` for task routing.</pre>
+
+<h2>2. Root <code>CONTEXT.md</code></h2>
+<p>Think of this as the <strong>map</strong>. It should answer: “Given what the user wants, where should I work?”</p>
+<ul>
+<li>List the major workflows.</li>
+<li>Point each workflow to its stage.</li>
+<li>Point to shared references only when useful.</li>
+<li>Keep it routing-oriented.</li>
+</ul>
+<pre># Project Context
+
+## Routes
+| Task | Start here |
+|---|---|
+| New feature | `stages/01_plan/` |
+| Bug fix | `stages/01_diagnose/` |
+| Refactor | `stages/01_plan/` |
+| Test failure | `stages/01_diagnose/` |
+
+## Shared context
+- Architecture: `_config/architecture.md`
+- Coding conventions: `_config/conventions.md`
+- Testing: `_config/testing.md`</pre>
+
+<h2>3. Stage <code>CONTEXT.md</code></h2>
+<p>This is the most important file. Treat it as a <strong>contract</strong>, not a prompt essay.</p>
+<p>The methodology explicitly recommends an <strong>Inputs → Process → Outputs</strong> contract, with the Inputs section specifying the exact reference and working files the stage should load. fileciteturn1file4L260-L266</p>
+<pre># Stage: 01 Plan
+
+## Goal
+Turn the user's request into a small, implementation-ready plan.
+
+## Inputs
+- User request
+- `../../_config/architecture.md`
+- `../../_config/conventions.md`
+- Relevant repository files discovered during inspection
+
+## Process
+1. Inspect the existing implementation before proposing changes.
+2. Identify the smallest viable change.
+3. Check existing patterns before introducing a new abstraction.
+4. List files that need changing.
+5. Define acceptance criteria.
+
+## Outputs
+Write:
+- `output/plan.md`
+
+The plan must contain:
+- Problem
+- Proposed change
+- Files affected
+- Acceptance criteria
+- Risks / unknowns
+
+## Verify
+- Every proposed change maps to the user request.
+- No unnecessary architecture changes.
+- Acceptance criteria are testable.
+
+## Stop
+Do not implement code in this stage.</pre>
+
+<h2>4. Reference Markdown files</h2>
+<p>Reference files are the project's <strong>factory configuration</strong>: stable rules the agent should internalize and apply across runs. The paper distinguishes them from working artifacts, which are the changing inputs/outputs of a particular run. fileciteturn1file0L11-L21</p>
+<div class="grid">
+<div class="card"><h3><code>architecture.md</code></h3><p>Only durable architectural decisions, boundaries, and important dependencies.</p></div>
+<div class="card"><h3><code>conventions.md</code></h3><p>Actual code patterns: naming, file placement, error handling, API patterns.</p></div>
+<div class="card"><h3><code>testing.md</code></h3><p>Commands, test locations, what must be tested, and known traps.</p></div>
+<div class="card"><h3><code>security.md</code></h3><p>Only project-specific security constraints that agents must obey.</p></div>
+</div>
+
+<h3>Write rules as decisions, not philosophy</h3>
+<pre>Good:
+- Use the repository's existing `Result` error pattern.
+- API handlers live under `src/api/`.
+- Prefer integration tests for database behavior.
+- Do not expose internal database IDs in public API responses.
+
+Weak:
+- Write clean code.
+- Follow best practices.
+- Make the architecture scalable.
+- Security is important.</pre>
+
+<h2>5. Working artifacts</h2>
+<p>Put <strong>current-run information</strong> here: plans, investigation notes, task specifications, test results, implementation notes, and stage outputs. These change between runs, unlike reference material. fileciteturn1file0L26-L40</p>
+<p class="good"><strong>Rule:</strong> If deleting the file would make sense before starting a completely new task, it is probably a working artifact.</p>
+
+<h2>6. Don't make the agent read everything</h2>
+<p>The methodology's core idea is scoped context: each stage loads only what it needs. Its stage Inputs table is specifically intended to make that selection explicit and auditable. fileciteturn1file7L392-L405</p>
+<ul>
+<li>Don't put all project documentation into one giant <code>CONTEXT.md</code>.</li>
+<li>Don't link every reference from every stage.</li>
+<li>Prefer one focused reference file over a giant “knowledge.md”.</li>
+<li>If a stage doesn't need a document, don't load it.</li>
+</ul>
+
+<h2>7. Use examples where rules are hard to express</h2>
+<p>For coding agents, an example often communicates a convention faster than prose.</p>
+<pre>## API response pattern
+
+Use this shape for successful responses:
+
+{
+  "data": ...,
+  "meta": {...}
+}
+
+Use the existing error envelope for failures.
+See: `src/api/errors.ts`.</pre>
+
+<h2>8. Make “don't” rules rare but strong</h2>
+<p>Use prohibitions for things that are genuinely costly or dangerous.</p>
+<pre>## Do not
+- Do not rewrite working modules to match a preferred style.
+- Do not add a dependency when the existing stack can solve the problem.
+- Do not change database schema without a migration.
+- Do not remove tests just because they are inconvenient.</pre>
+<p class="warn">Avoid dozens of “never” rules. Too many constraints make the file noisy and harder to maintain.</p>
+
+<h2>9. Put verification inside the stage</h2>
+<p>Don't rely on a final vague instruction like “make sure it works.” Define what success means at the stage boundary. The methodology suggests extending stage contracts with verification criteria that check consistency against earlier outputs. fileciteturn1file5L280-L290</p>
+<pre>## Verify
+- Typecheck passes.
+- Relevant tests pass.
+- No unrelated files changed.
+- Acceptance criteria in `output/plan.md` are satisfied.</pre>
+
+<h2>10. Human edits are feedback</h2>
+<p>If you repeatedly correct the same generated behavior, don't just keep editing the output. Ask whether the source context is underspecified. The paper's “edit-source” principle recommends turning recurring output corrections into better stage instructions or reference material. fileciteturn1file5L294-L314</p>
+<table><tr><th>Repeated correction</th><th>Likely fix</th></tr>
+<tr><td>Agent keeps overengineering</td><td>Add a concrete simplicity rule to conventions/stage contract.</td></tr>
+<tr><td>Agent keeps putting files in wrong places</td><td>Improve repository map and file-placement rules.</td></tr>
+<tr><td>Agent forgets tests</td><td>Add explicit verification + test command to the stage.</td></tr>
+<tr><td>Agent changes unrelated code</td><td>Add scope boundary: “Only modify files required for X.”</td></tr>
+<tr><td>Agent repeats a known bug pattern</td><td>Add the pattern + example to the relevant reference file.</td></tr></table>
+
+<h2>11. PI-specific recommendation: start smaller than the paper</h2>
+<p>You do <strong>not</strong> need a five-stage workflow for every coding project. The paper's approach is strongest for sequential, reviewable, repeatable workflows; it explicitly says it is not a replacement for systems needing real-time multi-agent collaboration, high concurrency, or complex automated branching. fileciteturn1file2L137-L146</p>
+<p>For a normal PI coding project, start with:</p>
+<pre>project/
+├── CLAUDE.md
+├── CONTEXT.md
+├── _config/
+│   ├── architecture.md
+│   ├── conventions.md
+│   └── testing.md
+├── stages/
+│   ├── 01_plan/
+│   │   ├── CONTEXT.md
+│   │   └── output/
+│   ├── 02_implement/
+│   │   ├── CONTEXT.md
+│   │   └── output/
+│   └── 03_verify/
+│       ├── CONTEXT.md
+│       └── output/
+└── src/</pre>
+
+<h2>12. The “good enough” test</h2>
+<div class="rule">
+<strong>Before adding anything to an MD file, ask:</strong><br><br>
+1. Does the agent need this to make a better decision?<br>
+2. Is it stable enough to belong in this layer?<br>
+3. Can I state it in one or two precise sentences?<br>
+4. Does a concrete example make it clearer?<br>
+5. Will this still be true in a month?
+</div>
+
+<h2>Quick maintenance loop</h2>
+<pre>Agent makes mistake
+      ↓
+Was it a one-off?
+      ├─ Yes → fix output and continue
+      └─ No
+          ↓
+What caused it?
+          ├─ Missing project rule → update _config/*.md
+          ├─ Wrong workflow instruction → update stage CONTEXT.md
+          ├─ Wrong routing → update root CONTEXT.md
+          └─ Missing capability → change code/tooling
+          ↓
+Run again
+          ↓
+Keep the MD change if it prevents recurrence</pre>
+
+<h2>Bottom line</h2>
+<p class="lead"><strong>Don't try to make the MD files comprehensive. Make them decisive.</strong></p>
+<p>The folder hierarchy should tell the agent where to look; each stage should tell it what to do; reference files should tell it what rules to follow; and outputs should give the next stage a clean, inspectable handoff. That is the useful part of the methodology for PI projects. fileciteturn1file0L22-L40</p>
+
+<hr style="border-color:#293653;margin-top:45px">
+<p class="small">Source basis: <em>Interpretable Context Methodology: Folder Structure as Agent Architecture</em>. The practical PI recommendations above are an application of the source's layered-context and stage-contract ideas, intentionally simplified to match the “don't over-engineer / don't over-explain” constraint.</p>
+</main></body></html>

@@ -19,10 +19,11 @@ what each component does, where it lives, and how to set it up.
   1. `git clone https://github.com/mguti97/no-bells-just-whistles`
   2. Install its requirements (its README suggests a conda env `NBJWCalib`).
   3. Download single-view weights `SV_kp` and `SV_lines` from its Releases page.
-- Used in: `touchline/calibration.py` (adapter scaffolded). Manual click is the
-  fallback while NBJW output parsing is finalised.
-- Status: scaffolded — the remaining step is extracting the homography NBJW
-  produces and converting it to our image->pitch JSON format.
+- Used in: `touchline/calibration.py`, which calls
+  `scripts/nbjw_homography.py` (the glue that reuses NBJW's own model code and
+  writes a Touchline-format homography). Manual click is the fallback.
+- Status: adapter implemented, written against NBJW's `inference.py`; not yet
+  executed end-to-end — needs the NBJW environment + torch.
 
 ## Action spotting (events) — SoccerNet
 - Repos:

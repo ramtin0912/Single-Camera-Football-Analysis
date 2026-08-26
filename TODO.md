@@ -8,12 +8,12 @@ Track current work. Sections follow `plan.md`.
       possession, heatmaps (written, compiles; run pending deps)
 - [x] S3 Tier 2 code: tracking -> distance & speed (ByteTrack, not hand-rolled)
 - [x] S5 smoke test script (`scripts/smoke_test.py`) written
-- [x] Re-architecture to open-source-first: ByteTrack, NBJW auto-calibration
-      scaffold, SoccerNet action-spotting plan; CLAUDE.md -> AGENTS.md
+- [x] Re-architecture to open-source-first: ByteTrack, NBJW auto-calibration,
+      SoccerNet action-spotting plan; CLAUDE.md -> AGENTS.md
+- [x] NBJW auto-calibration adapter (`scripts/nbjw_homography.py`) — implemented
+      against NBJW inference.py; not yet executed (needs torch)
 
 ## In progress
-- [ ] NBJW auto-calibration: finalise homography parsing in
-      `touchline/calibration.py:auto_calibrate` (see `_config/integrations.md`)
 - [ ] S4 Tier 3: events via SoccerNet action spotting (lRomul/ball-action-spotting
       or sn-spotting) — `touchline/metrics/events.py`
 

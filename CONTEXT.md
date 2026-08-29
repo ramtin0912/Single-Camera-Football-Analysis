@@ -10,6 +10,7 @@ Where to work, given what the user wants.
 | Detection / model changes | `touchline/detection.py` |
 | Calibration / pitch mapping | `touchline/calibration.py`, `touchline/projection.py` |
 | Tracking (ByteTrack) | `touchline/detection.py` |
+| Event detection (action spotting) | `touchline/action_spotting.py`, `scripts/action_spotting.py` |
 | Report output (JSON/HTML) | `touchline/report.py` |
 | Desktop app (future) | `plan.md` — Tier 4 (delegated, not built yet) |
 

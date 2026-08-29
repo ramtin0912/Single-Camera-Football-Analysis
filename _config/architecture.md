@@ -20,7 +20,7 @@ phone video (mp4)
   -> projection: box feet -> pitch metres (via homography)
   -> team_assignment: jersey colour k-means -> team 0 / team 1
   -> metrics: territory, possession, heatmaps, distance/speed
-  -> events: SoccerNet action spotting (Tier 3, planned)
+  -> events: SoccerNet action spotting (Tier 3, adapter written)
   -> report: report.json + report.html (+ heatmap PNGs)
 ```
 
@@ -34,6 +34,7 @@ phone video (mp4)
 | `team_assignment.py` | Colour centroids + team label |
 | `pitch.py` | Pitch landmarks, drawing canvas |
 | `metrics/*` | Pure functions: detections in -> numbers out |
+| `action_spotting.py` | Run the SoccerNet action-spotting model (glue) |
 | `report.py` | Serialise metrics to JSON + HTML |
 | `pipeline.py` | Orchestration loop |
 | `__main__.py` | CLI entry |

@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from touchline.metrics import distance_speed, possession, territory
+from touchline.metrics import distance_speed, events, possession, territory
 from touchline.records import FrameRecord, PlayerRecord
 
 FPS = 25.0
@@ -75,6 +75,14 @@ def main() -> int:
         check(len(distance_result["tracklets"]) == 10,
               "all ten players were tracked"),
     ]
+
+    raw_events = [{"label": "SHOT", "position_ms": 2000, "confidence": 0.9}]
+    event_list = events.attach_pitch_positions(raw_events, records, FPS)
+    print("Events:", event_list)
+    results.append(check(
+        len(event_list) == 1 and event_list[0]["frame_index"] == 50,
+        "event timestamp mapped to a frame with a ball position"))
+
     return 0 if all(results) else 1
 
 

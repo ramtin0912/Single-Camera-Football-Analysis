@@ -10,6 +10,9 @@ env/
 output/
 *.json.calibration
 
+# Third-party model repos cloned by make setup-nbjw / make setup-events
+third_party/
+
 # Local model weights (large binaries)
 *.pt
 models/

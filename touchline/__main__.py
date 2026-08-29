@@ -28,7 +28,16 @@ def _parse_args(argv):
                         help="auto-calibrate using the No Bells, Just Whistles "
                              "checkout at this path")
     parser.add_argument("--include-events", action="store_true",
-                        help="include event detection (not yet implemented)")
+                        help="run action spotting (needs --action-spotting-repo)")
+    parser.add_argument("--action-spotting-repo",
+                        help="path to a ball-action-spotting checkout")
+    parser.add_argument("--action-spotting-experiment",
+                        default="sampling_weights_001",
+                        help="experiment weights dir under data/ball_action/experiments")
+    parser.add_argument("--action-spotting-device", default="cuda:0")
+    parser.add_argument("--action-spotting-fold", type=int, default=0)
+    parser.add_argument("--action-spotting-prepare", action="store_true",
+                        help="resize/resample the video to 1280x736@25fps first")
     return parser.parse_args(argv)
 
 
@@ -43,6 +52,11 @@ def main(argv=None) -> int:
         calibration_path=args.calibration,
         auto_calibration_repo=args.auto_calibrate,
         include_events=args.include_events,
+        action_spotting_repo=args.action_spotting_repo,
+        action_spotting_experiment=args.action_spotting_experiment,
+        action_spotting_device=args.action_spotting_device,
+        action_spotting_fold=args.action_spotting_fold,
+        action_spotting_prepare=args.action_spotting_prepare,
     )
     runner.run()
     print(f"Report written to {args.out}/report.json and {args.out}/report.html")

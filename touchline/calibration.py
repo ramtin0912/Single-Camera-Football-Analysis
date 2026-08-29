@@ -102,7 +102,7 @@ def auto_calibrate(frame, nbjw_repo_path: str,
     (which reuses NBJW's own model code) and returns an image->pitch
     homography in Touchline's format. See `_config/integrations.md` for setup.
     """
-    repo = Path(nbjw_repo_path)
+    repo = Path(nbjw_repo_path).resolve()
     if not (repo / "inference.py").exists():
         raise FileNotFoundError(
             f"NBJW not found at {nbjw_repo_path}. Clone it and download the "

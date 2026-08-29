@@ -1,0 +1,12 @@
+# Keep the image lean and avoid baking in local state.
+.git/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+output/
+third_party/
+*.pt
+models/
+research/
+.DS_Store

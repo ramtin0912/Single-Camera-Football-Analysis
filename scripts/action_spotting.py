@@ -143,6 +143,12 @@ def run_spotting(video_path, args, constants, MultiDimStackerPredictor,
             "Pass --prepare to resample.")
     experiment_dir = constants.experiments_dir / args.experiment / f"fold_{args.fold}"
     model_path = get_best_model_path(experiment_dir)
+    if model_path is None:
+        raise RuntimeError(
+            f"No model weights (*.pth) in {experiment_dir}. Download the "
+            "trained weights from the Google Drive link in the "
+            "ball-action-spotting README and unpack them there — see README "
+            "section 3.")
     predictor = MultiDimStackerPredictor(model_path, device=args.device, tta=TTA)
     frame_indexes, raw = get_raw_predictions(predictor, video_path, frame_count)
     events = to_raw_events(frame_indexes, raw, raw_predictions_to_actions,

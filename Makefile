@@ -1,5 +1,5 @@
 # Touchline — one-command setup and run (Linux/macOS; needs make + python3).
-# Windows: follow the manual steps in README.md instead (or use WSL).
+# Docker: build with the Dockerfile instead (see README section 1).
 #
 #   make setup                     # venv + deps + YOLO weights (core pipeline)
 #   make setup-nbjw                # + NBJW repo + weights (enables --auto-calibrate)
@@ -70,7 +70,8 @@ setup-events: $(ACTION)/src/predictors.py
 	@echo "Remaining manual step (weights are on Google Drive):"
 	@echo "  1. Open the 'Trained models' link in $(ACTION)/README.md"
 	@echo "  2. Unpack it so $(ACTION)/data/ball_action/experiments/sampling_weights_001/ exists"
-	@echo "  3. Then follow the Docker steps in README.md section 3."
+	@echo "  3. Symlink it to /workdir, install timm kornia pytorch-argus scipy into"
+	@echo "     the venv, then follow README section 3 (native path)."
 
 $(ACTION)/src/predictors.py:
 	mkdir -p $(THIRD_PARTY)

@@ -61,10 +61,9 @@ Python 3.10+, OpenCV, NumPy, ultralytics (YOLOv8). See `_config/stack.md`.
 14. Fine-tuned football detector + real per-player identity.
 
 ## Build sections
-> Status: S1-S3 code, the S4 events adapter, and the S5 script are written and
-> compile. Nothing has been executed end-to-end yet — this environment has no
-> OpenCV/YOLO/GPU. First run happens after `pip install -r requirements.txt`
-> (and a GPU for action spotting).
+> Status: S2-S5 are written and **verified in the Debian 12 Docker container**:
+> the metric smoke test passes 5/5, YOLOv8n + ByteTrack detection is verified
+> on a real image, and the pipeline runs end-to-end (video -> calibration ->
 - [x] S1 — Project base: docs, config, structure, CLI skeleton
 - [x] S2 — Tier 0 + Tier 1: calibration, detection, team split, territory,
       possession, heatmaps (working end-to-end)

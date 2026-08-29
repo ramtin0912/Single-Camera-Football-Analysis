@@ -14,17 +14,28 @@ Track current work. Sections follow `plan.md`.
 - [x] Re-architecture to open-source-first: ByteTrack, NBJW auto-calibration,
       SoccerNet action-spotting plan; CLAUDE.md -> AGENTS.md
 - [x] NBJW auto-calibration adapter (`scripts/nbjw_homography.py`)
+- [x] Docker-first pivot: `Dockerfile` (core + `WITH_EVENTS=1` events image),
+      `.dockerignore`, README reordered Docker -> Linux/make; Windows `.bat`
+      scripts removed
+
+## Verified (Debian 12 Docker container)
+- [x] `scripts/smoke_test.py` — 5/5 PASS
+- [x] YOLOv8n + ByteTrack person detection on a real image (tracked IDs)
+- [x] Pipeline runs end-to-end on a synthetic clip (video -> calibration ->
+      detection -> metrics; stops only at the no-detections guard)
+- [x] Events adapter import chain against a live ball-action-spotting checkout
+      (timm 1.0.x / kornia 0.8.x / pytorch-argus 1.1.x on torch 2.13); model
+      inference itself needs a GPU + Google Drive weights
 
 ## In progress
 (none)
 
-## Next (on your machine)
-- [ ] `pip install -r requirements.txt`, then `python scripts/smoke_test.py` —
-      expect 5 PASS
-- [ ] Run `python -m touchline sample.mp4 --out output/match1` on a real clip
+## Next
+- [ ] Run on a real sideline clip (`output/sample.mp4` is synthetic)
 - [ ] Clone NBJW + download `SV_kp`/`SV_lines`, then `--auto-calibrate` on a clip
-- [ ] Clone ball-action-spotting + download weights (GPU), then
-      `--include-events --action-spotting-repo /path/to/repo`
+- [ ] Ball-action-spotting weights + GPU, then
+      `--include-events --action-spotting-repo /workdir` (Docker events image:
+      `docker build --build-arg WITH_EVENTS=1 -t touchline:events .`)
 - [ ] Fine-tune ball detector if COCO "sports ball" is weak
 
 ## Later (delegated)

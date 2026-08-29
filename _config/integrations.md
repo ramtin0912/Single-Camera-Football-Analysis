@@ -33,14 +33,23 @@ what each component does, where it lives, and how to set it up.
   - https://github.com/SoccerNet/sn-spotting (dev kit, 17 event classes)
 - What: pretrained action-spotting models output event labels + timestamps
   (SoccerNet `results_spotting.json`: label, position in ms, confidence).
-- Requirements: NVIDIA GPU + the repo's Docker/pip environment. Models consume
-  1280x736 grayscale frames at 25 fps.
-- Setup: clone the repo, download its weights from the author's Google Drive
-  into `data/ball_action/experiments/`, follow its README.
+- Requirements: NVIDIA GPU. Models consume 1280x736 grayscale frames at
+  25 fps (Touchline resamples with ffmpeg via `--action-spotting-prepare`).
+- Setup (Docker, preferred): `docker build --build-arg WITH_EVENTS=1 -t touchline:events .`
+  bakes the repo into `/workdir` (its code hardcodes that path) plus the
+  model's deps (`timm kornia pytorch-argus scipy`); the trained weights stay a
+  manual Google Drive download, mounted at runtime:
+  `-v $PWD/weights:/workdir/data/ball_action/experiments:ro`. See README
+  section 3.
+- Setup (native): `make setup-events` clones the repo into
+  `third_party/ball-action-spotting/`; symlink it to `/workdir` and
+  `pip install timm kornia pytorch-argus scipy` into the Touchline env.
 - Used in: `touchline/action_spotting.py` (calls `scripts/action_spotting.py`);
   `touchline/metrics/events.py` maps timestamps onto our pitch coordinates.
-- Status: adapter implemented (written against `predict.py`); not executed —
-  needs a GPU.
+- Status: adapter implemented (imports `src.predictors` etc. directly —
+  OpenCV frame fetching, no VPF/NVDEC needed); import chain verified in the
+  container against timm 1.0.x / kornia 0.8.x / pytorch-argus 1.1.x / torch
+  2.13. Full inference not executed here — needs a GPU + Google Drive weights.
 
 ## Team split — jersey colour k-means
 - No external model: a standard OpenCV k-means on Lab (a, b) jersey colour. This

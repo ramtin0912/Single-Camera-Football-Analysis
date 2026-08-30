@@ -26,7 +26,7 @@ class AnalysisPipeline:
                  auto_calibration_repo: str | None = None,
                  include_events: bool = False,
                  action_spotting_repo: str | None = None,
-                 action_spotting_experiment: str = "sampling_weights_001",
+                 action_spotting_experiment: str = "ball_finetune_long_004",
                  action_spotting_device: str = "cuda:0",
                  action_spotting_fold: int = 0,
                  action_spotting_prepare: bool = False):

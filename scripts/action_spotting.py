@@ -9,7 +9,7 @@
   repo's environment:
 
     python scripts/action_spotting.py --repo /path/to/ball-action-spotting \
-      --experiment sampling_weights_001 --video match.mp4 --out raw_events.json \
+      --experiment ball_finetune_long_004 --video match.mp4 --out raw_events.json \
       --prepare
 
 @status Written against the repo's predict.py; not executed here (needs GPU).

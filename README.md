@@ -71,11 +71,14 @@ ball-action-spotting README (Google Drive), download and unpack it so this
 folder exists next to `match.mp4`:
 
 ```
-weights/sampling_weights_001/fold_0/
+weights/ball_finetune_long_004/fold_0/
 ```
 
 (The weights are on Google Drive, so the build can't fetch them. You only need
-the `sampling_weights_001` experiment — Touchline's default.)
+the `ball_finetune_long_004` experiment — the author's best model (87.04%
+mAP@1 test) and Touchline's default. The Drive also contains the earlier
+`sampling_weights_001` / `ball_tuning_001` stages; they're only useful if you
+want to reproduce the training pipeline.)
 
 **3. Run with everything** — needs an **NVIDIA GPU**:
 
@@ -162,7 +165,7 @@ python -m touchline match.mp4 --out output --include-events --action-spotting-re
 | `--auto-calibrate DIR` | Auto pitch calibration via NBJW (no clicking) |
 | `--include-events` | Run action spotting (needs `--action-spotting-repo`) |
 | `--action-spotting-repo DIR` | Path to the ball-action-spotting checkout (in the image: `/workdir`) |
-| `--action-spotting-experiment NAME` | Trained experiment to use (default `sampling_weights_001`) |
+| `--action-spotting-experiment NAME` | Trained experiment to use (default `ball_finetune_long_004`) |
 | `--action-spotting-device` | Device for the events model (default `cuda:0`) |
 | `--action-spotting-prepare` | Resample video to 1280x736 @ 25 fps first (needs ffmpeg) |
 

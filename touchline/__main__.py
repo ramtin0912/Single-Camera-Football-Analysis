@@ -32,7 +32,7 @@ def _parse_args(argv):
     parser.add_argument("--action-spotting-repo",
                         help="path to a ball-action-spotting checkout")
     parser.add_argument("--action-spotting-experiment",
-                        default="sampling_weights_001",
+                        default="ball_finetune_long_004",
                         help="experiment weights dir under data/ball_action/experiments")
     parser.add_argument("--action-spotting-device", default="cuda:0")
     parser.add_argument("--action-spotting-fold", type=int, default=0)

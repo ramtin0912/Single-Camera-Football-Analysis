@@ -69,7 +69,7 @@ setup-events: $(ACTION)/src/predictors.py
 	@echo "Action-spotting repo cloned into $(ACTION)."
 	@echo "Remaining manual step (weights are on Google Drive):"
 	@echo "  1. Open the 'Trained models' link in $(ACTION)/README.md"
-	@echo "  2. Unpack it so $(ACTION)/data/ball_action/experiments/sampling_weights_001/ exists"
+	@echo "  2. Unpack it so $(ACTION)/data/ball_action/experiments/ball_finetune_long_004/ exists"
 	@echo "  3. Symlink it to /workdir, install timm kornia pytorch-argus scipy into"
 	@echo "     the venv, then follow README section 3 (native path)."
 

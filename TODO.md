@@ -14,6 +14,10 @@ Track current work. Sections follow `plan.md`.
 - [x] Re-architecture to open-source-first: ByteTrack, NBJW auto-calibration,
       SoccerNet action-spotting plan; CLAUDE.md -> AGENTS.md
 - [x] NBJW auto-calibration adapter (`scripts/nbjw_homography.py`)
+- [x] Fix NBJW adapter: swapped `coords_to_dict`/`complete_keypoints` unpacking
+      crashed every auto-calibration run (TypeError); verified end-to-end
+- [x] Auto-calibration frame selection: samples frames across the video with a
+      plausibility gate; `--calibration-frame N` forces a specific frame
 - [x] Docker-first pivot: `Dockerfile` (core + `WITH_EVENTS=1` events image),
       `.dockerignore`, README reordered Docker -> Linux/make; Windows `.bat`
       scripts removed
@@ -26,13 +30,18 @@ Track current work. Sections follow `plan.md`.
 - [x] Events adapter import chain against a live ball-action-spotting checkout
       (timm 1.0.x / kornia 0.8.x / pytorch-argus 1.1.x on torch 2.13); model
       inference itself needs a GPU + Google Drive weights
+- [x] NBJW adapter verified end-to-end on CPU (v1.0.0 weights): inference, camera
+      solve, homography export all run; `--device auto` uses CUDA when present
+- [x] NBJW sample clips (`messi_sample.png`, `iniesta_sample.mp4`) produce
+      degenerate fits with the base SV models — the plausibility gate rejects
+      them and the pipeline reports a clear error instead of a wrong calibration
 
 ## In progress
 (none)
 
 ## Next
-- [ ] Run on a real sideline clip (`output/sample.mp4` is synthetic)
-- [ ] Clone NBJW + download `SV_kp`/`SV_lines`, then `--auto-calibrate` on a clip
+- [ ] Run on a real sideline clip; confirm NBJW auto-calibration plausibility on
+      footage it can actually calibrate (broadcast-style wide shots)
 - [ ] Ball-action-spotting weights + GPU, then
       `--include-events --action-spotting-repo /workdir` (Docker events image:
       `docker build --build-arg WITH_EVENTS=1 -t touchline:events .`)

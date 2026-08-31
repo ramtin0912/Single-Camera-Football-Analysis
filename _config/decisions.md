@@ -31,3 +31,7 @@ One line per decision, so future changes are deliberate.
     x-bands; attacking direction is handled later (per-half), not baked in now.
 11. **No implicit persistence.** Calibration/report writes only happen because the
     user ran the pipeline, never in the background.
+12. **Auto-calibration tries several frames, gated by a plausibility check.** NBJW
+    single-frame fits can be degenerate; the pipeline samples frames across the
+    video and uses the first frame whose homography maps the pitch corners near
+    the frame (finite, bounded, convex). `--calibration-frame N` forces a frame.

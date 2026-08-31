@@ -24,6 +24,7 @@ class AnalysisPipeline:
                  frame_step: int = config.DEFAULT_FRAME_STEP,
                  calibration_path: str | None = None,
                  auto_calibration_repo: str | None = None,
+                 calibration_frame: int | None = None,
                  include_events: bool = False,
                  action_spotting_repo: str | None = None,
                  action_spotting_experiment: str = "ball_finetune_long_004",
@@ -36,6 +37,7 @@ class AnalysisPipeline:
         self.frame_step = frame_step
         self.calibration_path = calibration_path
         self.auto_calibration_repo = auto_calibration_repo
+        self.calibration_frame = calibration_frame
         self.include_events = include_events
         self.action_spotting_repo = action_spotting_repo
         self.action_spotting_experiment = action_spotting_experiment
@@ -74,8 +76,8 @@ class AnalysisPipeline:
         if self.calibration_path and Path(self.calibration_path).exists():
             return calibration.load_calibration(self.calibration_path)
         if self.auto_calibration_repo:
-            frame = video.read_frame(0)
-            return calibration.auto_calibrate(frame, self.auto_calibration_repo)
+            frames = self._auto_calibration_frames(video)
+            return calibration.auto_calibrate(frames, self.auto_calibration_repo)
         frame = video.read_frame(0)
         clicks = calibration.collect_calibration_clicks(frame)
         homography = calibration.compute_homography(clicks)
@@ -83,6 +85,33 @@ class AnalysisPipeline:
         calibration.save_calibration(str(self.out_dir / "calibration.json"),
                                      homography)
         return homography
+
+    def _auto_calibration_frames(self, video):
+        """Candidate (frame_index, frame) pairs for NBJW auto-calibration.
+
+        Uses the explicitly requested frame when given; otherwise samples a
+        few frames across the video so the first frame does not have to be
+        perfect.
+        """
+        if self.calibration_frame is not None:
+            if self.calibration_frame >= video.frame_count:
+                raise ValueError(
+                    f"--calibration-frame {self.calibration_frame} is out of "
+                    f"range: the video has {video.frame_count} frames.")
+            return [(self.calibration_frame,
+                     video.read_frame(self.calibration_frame))]
+        count = video.frame_count
+        if count <= 0:
+            return [(0, video.read_frame(0))]
+        indices = sorted({int(round(fraction * (count - 1)))
+                          for fraction in calibration.CALIBRATION_SAMPLE_FRACTIONS})
+        frames = []
+        for index in indices:
+            try:
+                frames.append((index, video.read_frame(index)))
+            except RuntimeError:
+                continue
+        return frames or [(0, video.read_frame(0))]
 
     def _process_frames(self, video, detector, homography):
         frame_records = []

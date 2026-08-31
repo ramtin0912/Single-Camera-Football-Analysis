@@ -107,10 +107,13 @@ RUN if [ "$WITH_NBJW" = "1" ]; then \
       git clone --depth 1 https://github.com/mguti97/no-bells-just-whistles /nbjw \
         && curl -fL -o /nbjw/SV_kp https://github.com/mguti97/No-Bells-Just-Whistles/releases/download/v1.0.0/SV_kp \
         && curl -fL -o /nbjw/SV_lines https://github.com/mguti97/No-Bells-Just-Whistles/releases/download/v1.0.0/SV_lines \
-        && .venv/bin/python -c "import sys; sys.path.insert(0, '/nbjw'); \
+        && .venv/bin/python -c "import sys, inspect; sys.path.insert(0, '/nbjw'); \
              from model.cls_hrnet import get_cls_net; \
              from model.cls_hrnet_l import get_cls_net as get_cls_net_l; \
              from utils.utils_calib import FramebyFrameCalib; \
+             from utils.utils_heatmap import complete_keypoints, coords_to_dict; \
+             assert 'threshold' in inspect.signature(coords_to_dict).parameters, 'NBJW coords_to_dict API changed'; \
+             assert 'normalize' in inspect.signature(complete_keypoints).parameters, 'NBJW complete_keypoints API changed'; \
              print('NBJW imports OK');" \
     ; fi
 

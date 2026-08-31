@@ -4,8 +4,10 @@
   primary path is open-source auto-calibration (No Bells, Just Whistles); a
   manual 4+ point click remains as a fallback. Homographies cache to JSON.
 
-@status Auto-calibration adapter implemented; manual path fully working.
-@issues Not yet executed end-to-end (needs the NBJW environment + torch).
+@status Auto-calibration verified end-to-end (NBJW v1.0.0 weights on CPU);
+  manual path fully working. Homographies cache to JSON.
+@issues NBJW's single-frame fit is only as good as its keypoint/line detections;
+  the plausibility check rejects degenerate fits and moves to the next frame.
 @todo None
 """
 
@@ -33,6 +35,16 @@ CLICK_ORDER = [
 ]
 REQUIRED_CLICKS = 4
 CLICK_COLOUR = (0, 200, 255)
+
+# When no explicit frame is requested, auto-calibration samples these
+# fractions of the video and uses the first frame NBJW calibrates plausibly.
+CALIBRATION_SAMPLE_FRACTIONS = (0.0, 0.25, 0.5, 0.75)
+
+# A homography is only plausible if the projected pitch sits near the frame;
+# NBJW returns degenerate solutions on frames it cannot calibrate.
+_CORNER_NAMES = ("near_left_corner", "near_right_corner",
+                 "far_right_corner", "far_left_corner")
+_MAX_CORNER_MARGIN = 3.0  # in frame widths/heights
 
 
 def collect_calibration_clicks(frame) -> dict:
@@ -93,14 +105,40 @@ def compute_homography(clicks: dict) -> np.ndarray:
     return homography
 
 
-def auto_calibrate(frame, nbjw_repo_path: str,
+def homography_is_plausible(homography: np.ndarray,
+                            width: int, height: int) -> bool:
+    """True if the homography maps the pitch corners to a sane view of the
+    frame (finite, near the frame, convex) rather than a degenerate fit."""
+    try:
+        world = np.array([pitch.build_landmarks()[name]
+                          for name in _CORNER_NAMES], dtype=np.float64)
+        image = cv2.perspectiveTransform(
+            world.reshape(-1, 1, 2),
+            np.linalg.inv(homography)).reshape(-1, 2)
+    except (cv2.error, np.linalg.LinAlgError):
+        return False
+    if not np.all(np.isfinite(image)):
+        return False
+    limit_x = _MAX_CORNER_MARGIN * width
+    limit_y = _MAX_CORNER_MARGIN * height
+    if (not np.all(np.abs(image[:, 0]) <= limit_x)
+            or not np.all(np.abs(image[:, 1]) <= limit_y)):
+        return False
+    polygon = image.astype(np.float32)
+    return bool(cv2.isContourConvex(polygon)
+                and cv2.contourArea(polygon) > 0.0)
+
+
+def auto_calibrate(frames, nbjw_repo_path: str,
                    weights_kp: str = "SV_kp",
                    weights_line: str = "SV_lines") -> np.ndarray:
     """Calibrate automatically using No Bells, Just Whistles (NBJW).
 
-    Runs the NBJW single-image calibration via `scripts/nbjw_homography.py`
-    (which reuses NBJW's own model code) and returns an image->pitch
-    homography in Touchline's format. See `_config/integrations.md` for setup.
+    `frames` is a list of (frame_index, frame) candidates tried in order; the
+    first one NBJW calibrates plausibly wins. Runs the NBJW single-image
+    calibration via `scripts/nbjw_homography.py` (which reuses NBJW's own
+    model code) and returns an image->pitch homography in Touchline's format.
+    See `_config/integrations.md` for setup.
     """
     repo = Path(nbjw_repo_path).resolve()
     if not (repo / "inference.py").exists():
@@ -109,18 +147,33 @@ def auto_calibrate(frame, nbjw_repo_path: str,
             "SV_kp / SV_lines weights — see _config/integrations.md.")
     script = Path(__file__).resolve().parent.parent / "scripts" / "nbjw_homography.py"
     with tempfile.TemporaryDirectory() as tmp:
-        frame_path = Path(tmp) / "frame.png"
-        out_path = Path(tmp) / "calibration.json"
-        cv2.imwrite(str(frame_path), frame)
-        subprocess.run(
-            [sys.executable, str(script),
-             "--nbjw-repo", str(repo),
-             "--weights_kp", weights_kp,
-             "--weights_line", weights_line,
-             "--input", str(frame_path),
-             "--out", str(out_path)],
-            cwd=str(repo), check=True)
-        return load_calibration(str(out_path))
+        for index, frame in frames:
+            frame_path = Path(tmp) / "frame.png"
+            out_path = Path(tmp) / "calibration.json"
+            cv2.imwrite(str(frame_path), frame)
+            try:
+                subprocess.run(
+                    [sys.executable, str(script),
+                     "--nbjw-repo", str(repo),
+                     "--weights_kp", weights_kp,
+                     "--weights_line", weights_line,
+                     "--input", str(frame_path),
+                     "--out", str(out_path)],
+                    cwd=str(repo), check=True)
+            except subprocess.CalledProcessError:
+                print(f"  NBJW could not calibrate frame {index}; trying next.")
+                continue
+            homography = load_calibration(str(out_path))
+            height, width = frame.shape[:2]
+            if homography_is_plausible(homography, width, height):
+                print(f"  Auto-calibrated from frame {index}.")
+                return homography
+            print(f"  Frame {index} produced an implausible fit; trying next.")
+        tried = ", ".join(str(index) for index, _ in frames)
+        raise RuntimeError(
+            f"NBJW could not calibrate from any candidate frame ({tried}). "
+            "Use --calibration-frame N with a frame where the whole pitch is "
+            "visible, a saved --calibration file, or manual calibration.")
 
 
 def save_calibration(path: str, homography: np.ndarray) -> None:

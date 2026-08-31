@@ -10,8 +10,10 @@
       --weights_kp SV_kp --weights_line SV_lines \
       --input frame.png --out calibration.json
 
-@status Written against NBJW inference.py; not executed here (needs torch).
-@issues None
+@status Verified end-to-end on CPU against the v1.0.0 checkout + weights
+  (SV_kp / SV_lines); writes a Touchline-format homography.
+@issues NBJW's single-frame calibration is only as good as its keypoint/line
+  detections on that frame — sparse detections yield degenerate homographies.
 @todo None
 """
 
@@ -47,7 +49,8 @@ def parse_args():
     parser.add_argument("--weights_line", required=True)
     parser.add_argument("--input", required=True, help="single frame image")
     parser.add_argument("--out", required=True, help="output calibration JSON")
-    parser.add_argument("--device", default="cpu")
+    parser.add_argument("--device", default="auto",
+                        help="torch device (auto = cuda if available)")
     parser.add_argument("--kp_threshold", type=float, default=0.1486)
     parser.add_argument("--line_threshold", type=float, default=0.3880)
     return parser.parse_args()
@@ -155,19 +158,27 @@ def fit_touchline_homography(h_world_to_image):
     return homography
 
 
+def resolve_device(device: str) -> str:
+    """Map 'auto' to cuda when available, otherwise cpu."""
+    if device != "auto":
+        return device
+    return "cuda:0" if torch.cuda.is_available() else "cpu"
+
+
 def main():
     args = parse_args()
+    device = resolve_device(args.device)
     (get_cls_net, get_cls_net_l, FramebyFrameCalib, kp_func, line_func,
-     coords_to_dict, complete_keypoints) = import_nbjw(args.nbjw_repo)
+     complete_keypoints, coords_to_dict) = import_nbjw(args.nbjw_repo)
     model, model_l = build_models(args.nbjw_repo, args.weights_kp,
-                                  args.weights_line, args.device,
+                                  args.weights_line, device,
                                   get_cls_net, get_cls_net_l)
     frame = cv2.imread(args.input)
     if frame is None:
         raise RuntimeError(f"Could not read image: {args.input}")
     cam = FramebyFrameCalib(iwidth=frame.shape[1], iheight=frame.shape[0],
                             denormalize=True)
-    final_params = run_inference(frame, cam, model, model_l, args.device,
+    final_params = run_inference(frame, cam, model, model_l, device,
                                  args.kp_threshold, args.line_threshold,
                                  kp_func, line_func, coords_to_dict,
                                  complete_keypoints)

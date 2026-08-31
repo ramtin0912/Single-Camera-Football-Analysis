@@ -102,7 +102,11 @@ docker run --rm --gpus all \
 
 What each flag does:
 
-- `--auto-calibrate /nbjw` — pitch calibration from the first frame, no clicking
+- `--auto-calibrate /nbjw` — pitch calibration from a frame, no clicking. It
+  tries a few frames across the video (first, ~25%, ~50%, ~75%) and uses the
+  first one that gives a plausible pitch fit, so a poor first frame is fine.
+- `--calibration-frame N` — force a specific frame index for auto-calibration
+  (find a frame where the whole pitch is visible).
 - `--include-events` + `--action-spotting-repo /workdir` — detect passes/drives
 - `--action-spotting-prepare` — resamples your video to the model's input
   format (1280x736 @ 25 fps); drop it if your video already matches
@@ -162,7 +166,8 @@ python -m touchline match.mp4 --out output --include-events --action-spotting-re
 | `--frame-step N` | Process every Nth frame — higher is faster, fine for territory/heatmaps |
 | `--model NAME` | YOLO model (default `yolov8n.pt`) |
 | `--calibration FILE` | Reuse a saved calibration instead of clicking/auto-calibrating |
-| `--auto-calibrate DIR` | Auto pitch calibration via NBJW (no clicking) |
+| `--auto-calibrate DIR` | Auto pitch calibration via NBJW (no clicking; tries several frames, uses the first plausible fit) |
+| `--calibration-frame N` | Use a specific frame index for auto-calibration (default: auto-try several) |
 | `--include-events` | Run action spotting (needs `--action-spotting-repo`) |
 | `--action-spotting-repo DIR` | Path to the ball-action-spotting checkout (in the image: `/workdir`) |
 | `--action-spotting-experiment NAME` | Trained experiment to use (default `ball_finetune_long_004`) |

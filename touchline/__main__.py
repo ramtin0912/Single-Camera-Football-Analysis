@@ -27,6 +27,9 @@ def _parse_args(argv):
     parser.add_argument("--auto-calibrate", metavar="NBJW_REPO",
                         help="auto-calibrate using the No Bells, Just Whistles "
                              "checkout at this path")
+    parser.add_argument("--calibration-frame", type=int, default=None,
+                        help="frame index to use for auto-calibration "
+                             "(default: try a few frames across the video)")
     parser.add_argument("--include-events", action="store_true",
                         help="run action spotting (needs --action-spotting-repo)")
     parser.add_argument("--action-spotting-repo",
@@ -51,6 +54,7 @@ def main(argv=None) -> int:
         frame_step=args.frame_step,
         calibration_path=args.calibration,
         auto_calibration_repo=args.auto_calibrate,
+        calibration_frame=args.calibration_frame,
         include_events=args.include_events,
         action_spotting_repo=args.action_spotting_repo,
         action_spotting_experiment=args.action_spotting_experiment,
